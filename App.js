@@ -36,6 +36,20 @@ export default function App() {
   )
 }
 
+//Concept for profile button
+/*
+  <Stack.Navigator>
+        <Stack.Screen
+          name="Profile"
+          component={Profile}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={Settings}
+        />
+      </Stack.Navigator>
+*/
+
 const Feed = ({ navigation }) => {
   return (
     <View>
