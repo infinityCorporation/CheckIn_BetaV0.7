@@ -147,14 +147,32 @@ const Profile = ({ navigation }) => {
 }
 
 const Search = ({ navigation }) => {
-  const [ search, updateSearch ] = useState('');
+  const [search, setSearch] = useState('');
+
+  const updateText = (search) => {
+    setSearch(search)
+  }
 
   return(
     <View>
       <SearchBar
       placeholder="Search..."
-      onChangeText={updateSearch(Text)}
+      onChangeText={updateText}
+      value={search}
       />
+    </View>
+  )
+}
+
+const Settings = ({ navigation }) => {
+  return(
+    <View>
+      <Text>
+        This is the settings page.
+      </Text>
+      <Button>
+        Sign Out
+      </Button>
     </View>
   )
 }
