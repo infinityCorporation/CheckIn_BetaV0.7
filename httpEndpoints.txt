@@ -1,0 +1,12 @@
+db: userend
+
+all users [get]: https://userend.herokuapp.com/users
+get user [get]: https://userend.herokuapp.com/get_user/:id
+
+__________________________________________________________________
+
+db: postsbase
+
+all posts [get]: https://postsbase.herokuapp.com/posts
+get post [get]: https://postsbase.herokuapp.com/post/:id
+add post [post]: https://postsbase.herokuapp.com/add {JSON}
