@@ -11,6 +11,8 @@ import FeedPage from './components/feedPage.js';
 import ProfilePage from './components/profilePage.js';
 import pfp from './assets/pfp.png';
 
+import { Auth0Provider } from "react-native-auth0";
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -20,19 +22,23 @@ const windowWidth = Dimensions.get('window').width;
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Tab.Navigator>
-        <Tab.Screen 
-          name="Feed"
-          component={Feed}/>
-        <Tab.Screen
-          name="Search"
-          component={Search}/>
-        <Tab.Screen
-          name="Profile"
-          component={Profile}/>
-      </Tab.Navigator>
-    </NavigationContainer>
+    <Auth0Provider
+      domain={"dev-yrna5lmfp3skyl5x.us.auth0.com"}
+      clientID={"suSGQOrsjixmsnkDeBxzRX6wXmw7TXrx"}>
+      <NavigationContainer>
+        <Tab.Navigator>
+          <Tab.Screen 
+            name="Feed"
+            component={Feed}/>
+          <Tab.Screen
+            name="Search"
+            component={Search}/>
+          <Tab.Screen
+            name="Profile"
+            component={Profile}/>
+        </Tab.Navigator>
+      </NavigationContainer>
+    </Auth0Provider>
   )
 }
 
