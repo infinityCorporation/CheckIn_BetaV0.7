@@ -11,8 +11,20 @@ import FeedPage from './components/feedPage.js';
 import ProfilePage from './components/profilePage.js';
 import pfp from './assets/pfp.png';
 
-import { Auth0Provider } from "react-native-auth0";
+import auth from './firebase.js';
+import LoginPage from './components/loginPage.js'
 
+import { initializeApp } from 'firebase/app';
+import { initializeAuth } from 'firebase/auth';
+import { getReactNativePersistence } from 'firebase/auth/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import firebaseConfig from './firebase.js';
+/*
+const app = initializeApp(firebaseConfig);
+initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage)
+})
+*/
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -22,25 +34,27 @@ const windowWidth = Dimensions.get('window').width;
 
 export default function App() {
   return (
-    <Auth0Provider
-      domain={"dev-yrna5lmfp3skyl5x.us.auth0.com"}
-      clientID={"suSGQOrsjixmsnkDeBxzRX6wXmw7TXrx"}>
-      <NavigationContainer>
-        <Tab.Navigator>
-          <Tab.Screen 
-            name="Feed"
-            component={Feed}/>
-          <Tab.Screen
-            name="Search"
-            component={Search}/>
-          <Tab.Screen
-            name="Profile"
-            component={Profile}/>
-        </Tab.Navigator>
-      </NavigationContainer>
-    </Auth0Provider>
-  )
-}
+    <View>
+      <LoginPage/>
+    </View>
+  );
+};
+
+/*
+   <NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen 
+          name="Feed"
+          component={Feed}/>
+        <Tab.Screen
+          name="Search"
+          component={Search}/>
+        <Tab.Screen
+          name="Profile"
+          component={Profile}/>
+      </Tab.Navigator>
+    </NavigationContainer> 
+*/
 
 //Concept for profile button
 /*

@@ -14,10 +14,14 @@ export default function settingsPage() {
     }
 
     return (
-        <View>
-            <Button
-            onPress={onPress}
-            title="Logout"/>
-        </View>
+        <Auth0Provider
+        domain={"dev-yrna5lmfp3skyl5x.us.auth0.com"}
+        clientId={"suSGQOrsjixmsnkDeBxzRX6wXmw7TXrx"}>
+            <View>
+                <Button
+                onPress={onPress}
+                title="Logout"/>
+            </View>
+        </Auth0Provider>
     )
 }
