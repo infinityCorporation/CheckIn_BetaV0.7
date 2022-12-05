@@ -14,7 +14,12 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, on
 //Import the async storage module
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function LoginPage() {
+//Import the Navigation for auth to main page
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+export default function LoginPage({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
