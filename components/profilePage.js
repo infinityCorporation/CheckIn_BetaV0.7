@@ -14,56 +14,12 @@ const windowHeight = Dimensions.get('window').height - 250;
 const windowHeightFull = Dimensions.get('window').height + 5;
 const windowWidth = Dimensions.get('window').width;
 
-const DATA = [
-    {
-      img: PostOne,
-      description: "This is my first post."
-    },
-    {
-      img: PostOne,
-      description: "This is my second post."
-    },
-    {
-      img: PostOne,
-      description: "This is my third post."
-    },
-    {
-      img: PostOne,
-      description: "This is my fourth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my fifth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my sixth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my sixth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my sixth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my sixth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my sixth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my sixth post."
-    }
-  ]
+//Most recent try: Pulling the posts from the database grab instead of getting them from the posts grab function
 
 export default function ProfilePage() {
-  const [loadState, setLoadState] = useState(0)
-  const [data, setData] = useState([])
+  const [loadState, setLoadState] = useState(0);
+  const [data, setData] = useState([]);
+  const [posts, setPosts] = useState([]);
     
   if (loadState == 0) {
     var request = new XMLHttpRequest();
@@ -73,9 +29,9 @@ export default function ProfilePage() {
     }
     if (request.status === 200) {
         console.log('success', request.responseText);
-        ResObj = JSON.parse(request.response)
-        setData(ResObj)
-        setLoadState(2)
+        ResObj = JSON.parse(request.response);
+        setData(ResObj);
+        setLoadState(2);
     } else {
         console.warn('error');
     }
@@ -93,6 +49,11 @@ export default function ProfilePage() {
   }
 
   if ( loadState == 2 ) {
+    /*
+    console.log(posts)
+    console.log(data.posts);
+    console.log(data.posts[0].content);
+    */
     if ( Platform.OS === 'ios' ) {
       return (
       <View 
@@ -144,6 +105,7 @@ export default function ProfilePage() {
               {data.description} 
             </Text>
         </View>
+        <View>
         <FlatList
             style={{
                 right: 10,
@@ -152,7 +114,7 @@ export default function ProfilePage() {
             contentContainerStyle={{
                 paddingBottom: 50
             }}
-            data={DATA}
+            data={data.posts}
             renderItem={ ({item}) => 
             <View
             style={{
@@ -163,26 +125,19 @@ export default function ProfilePage() {
                 margin: 4,
                 left: 1,
                 backgroundColor: 'white'
-            }}>
-                <Image
-                source={item.img}
-                style={{
-                height: 96,
-                width: 96,
-                position: 'absolute',
-                top: 2,
-                left: 2
-                }}/>
+            }}> 
                 <Text
                 style={{
                 position: 'absolute',
-                left: 108
+                left: 10
                 }}>
-                {item.description}
+                  {item.content}
                 </Text>
+
             </View>
             }
-            /> 
+            />
+        </View>
       </View>
       );
     } else {
@@ -196,3 +151,66 @@ export default function ProfilePage() {
     }
   }
 }
+
+//Image display code
+/*
+<Image
+                source={item.img}
+                style={{
+                height: 96,
+                width: 96,
+                position: 'absolute',
+                top: 2,
+                left: 2
+                }}/>
+*/
+
+//Test DATA Code
+/*
+const DATA = [
+    {
+      img: PostOne,
+      description: "This is my first post."
+    },
+    {
+      img: PostOne,
+      description: "This is my second post."
+    },
+    {
+      img: PostOne,
+      description: "This is my third post."
+    },
+    {
+      img: PostOne,
+      description: "This is my fourth post."
+    },
+    {
+      img: PostOne,
+      description: "This is my fifth post."
+    },
+    {
+      img: PostOne,
+      description: "This is my sixth post."
+    },
+    {
+      img: PostOne,
+      description: "This is my sixth post."
+    },
+    {
+      img: PostOne,
+      description: "This is my sixth post."
+    },
+    {
+      img: PostOne,
+      description: "This is my sixth post."
+    },
+    {
+      img: PostOne,
+      description: "This is my sixth post."
+    },
+    {
+      img: PostOne,
+      description: "This is my sixth post."
+    }
+  ]
+*/

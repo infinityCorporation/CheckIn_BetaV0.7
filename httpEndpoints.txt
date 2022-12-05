@@ -1,12 +1,17 @@
 db: userend
 
+start statte [get]: https://userend.herokuapp.com/
 all users [get]: https://userend.herokuapp.com/users
 get user [get]: https://userend.herokuapp.com/get_user/:id
+get posts [get]: https://userend.herokuapp.com/get_posts/:id
+update user [patch]: https://userend.herokuapp.com/update/:id {JSON}
+create user [post]: https://userend.herokuapp.com/add {JSON}
 
 __________________________________________________________________
 
 db: postsbase
 
+start state [get]: https://postsbase.herokuapp.com/
 all posts [get]: https://postsbase.herokuapp.com/posts
 get post [get]: https://postsbase.herokuapp.com/post/:id
 add post [post]: https://postsbase.herokuapp.com/add {JSON}

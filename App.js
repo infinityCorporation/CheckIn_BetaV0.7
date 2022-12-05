@@ -6,6 +6,7 @@ import { SearchBar } from 'react-native-elements';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Octicons } from '@expo/vector-icons';
 
 import FeedPage from './components/feedPage.js';
 import ProfilePage from './components/profilePage.js';
@@ -34,7 +35,25 @@ const Tab = createBottomTabNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Tab.Navigator>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          tabBarIcon: ({ focused, color, size }) => {
+            let iconName;
+            
+            if (route.name === 'Feed') {
+              iconName = focused ? 'home' : 'home';
+            } else if (route.name === 'Profile') {
+              iconName = focused ? 'person' : 'person';
+            } else if (route.name === 'Search') {
+              iconName = focused ? 'search' : 'search';
+            }
+
+            return <Octicons name={iconName} color={color} size={size} />;
+          },
+          tabBarActiveTintColor: 'gray',
+          tabBarInactiveTintColor: 'gray',
+        })}
+      >
         <Tab.Screen 
           name="Feed"
           component={Feed}/>
