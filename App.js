@@ -35,35 +35,37 @@ const Tab = createBottomTabNavigator();
 export default function App() {
   return (
     <NavigationContainer>
+      
       <Tab.Navigator
-        screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
-            
-            if (route.name === 'Feed') {
-              iconName = focused ? 'home' : 'home';
-            } else if (route.name === 'Profile') {
-              iconName = focused ? 'person' : 'person';
-            } else if (route.name === 'Search') {
-              iconName = focused ? 'search' : 'search';
-            }
+          screenOptions={({ route }) => ({
+            tabBarIcon: ({ focused, color, size }) => {
+              let iconName;
+              
+              if (route.name === 'Feed') {
+                iconName = focused ? 'home' : 'home';
+              } else if (route.name === 'Profile') {
+                iconName = focused ? 'person' : 'person';
+              } else if (route.name === 'Search') {
+                iconName = focused ? 'search' : 'search';
+              }
 
-            return <Octicons name={iconName} color={color} size={size} />;
-          },
-          tabBarActiveTintColor: 'gray',
-          tabBarInactiveTintColor: 'gray',
-        })}
-      >
-        <Tab.Screen 
-          name="Feed"
-          component={Feed}/>
-        <Tab.Screen
-          name="Search"
-          component={Search}/>
-        <Tab.Screen
-          name="Profile"
-          component={Profile}/>
-      </Tab.Navigator>
+              return <Octicons name={iconName} color={color} size={size} />;
+            },
+            tabBarActiveTintColor: 'gray',
+            tabBarInactiveTintColor: 'gray',
+          })}
+        >
+          <Tab.Screen 
+            name="Feed"
+            component={Feed}/>
+          <Tab.Screen
+            name="Search"
+            component={Search}/>
+          <Tab.Screen
+            name="Profile"
+            component={Profile}/>
+        </Tab.Navigator> 
+      
     </NavigationContainer> 
   );
 };
