@@ -2,7 +2,7 @@
 import * as React from 'react';
 
 //From React import useState
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 
 //Import Elements from React-Native (May be an issue here)
 import { View, Text, KeyboardAvoidingView, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
@@ -11,53 +11,9 @@ import { View, Text, KeyboardAvoidingView, TextInput, TouchableOpacity, StyleShe
 //import auth from '../firebase.js';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 
-//Import the async storage module
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-//Import the Navigation for auth to main page
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-
 export default function LoginPage({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
-    const auth = getAuth();
-
-    const handleSignUp = async () => {
-        createUserWithEmailAndPassword(auth, email, password)
-            .then(userCredential => {
-                const user = userCredential.user;
-                console.log(user.email);
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                console.log(errorCode, ' ', errorMessage);
-            })
-    };
-
-    const handleLogin = async () => {
-        signInWithEmailAndPassword(auth, email, password)
-            .then(userCredential => {
-                const user = userCredential.user;
-                console.log("Logged in with:", user.email);
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                console.log(errorCode, ' ', errorMessage);
-            })
-    }
-
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            console.log(user.email)
-        } else {
-            console.log("no user signed in")
-        }
-    })
 
     return (
         <KeyboardAvoidingView
@@ -85,7 +41,7 @@ export default function LoginPage({ navigation }) {
                 style={styles.buttonContainer}
             >
                 <TouchableOpacity
-                    onPress={handleLogin}
+                    onPress={signIn}
                     style={styles.button}
                 >
                     <Text

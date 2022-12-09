@@ -8,25 +8,24 @@ import { Octicons } from '@expo/vector-icons';
 
 import { useState } from 'react';
 
-import FeedPage from './feedPage.js';
-import ProfilePage from './profilePage.js';
-
-import auth from '../firebase.js';
-
-/*
-import { initializeApp } from 'firebase/app';
-import { initializeAuth } from 'firebase/auth';
-import { getReactNativePersistence } from 'firebase/auth/react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import firebaseConfig from './firebase.js';
-*/
+import FeedPage from './feedPage';
+import ProfilePage from './profilePage';
 
 const Tab = createBottomTabNavigator();
+
+const windowHeight = Dimensions.get('window').height;
+const windowWidth = Dimensions.get('window').width;
+const postViewSize = windowWidth + 100;
+const postViewSizeWidth = windowWidth - 25;
+const postSquareDimensions = windowWidth - 29.5;
+const usernameTop = windowWidth - 25;
+const descriptionTop = windowWidth + 7.5;
+const likesTop = descriptionTop - 30;
 
 export default function MainAppBuild() {
     return (
         <NavigationContainer
-            independent="true"
+            independent = "true"
         >
             <Tab.Navigator
             screenOptions={({ route }) => ({
@@ -43,25 +42,25 @@ export default function MainAppBuild() {
 
                 return <Octicons name={iconName} color={color} size={size} />;
                 },
-                tabBarActiveTintColor: 'gray',
-                tabBarInactiveTintColor: 'gray',
+                tabBarActiveTintColor: 'black',
+                tabBarInactiveTintColor: 'grey',
             })}
             >
-            <Tab.Screen 
-                name="Feed"
-                component={Feed}/>
-            <Tab.Screen
-                name="Search"
-                component={Search}/>
-            <Tab.Screen
-                name="Profile"
-                component={Profile}/>
+                <Tab.Screen 
+                    name="Feed"
+                    component={MainFeed}/>
+                <Tab.Screen
+                    name="Search"
+                    component={Search}/>
+                <Tab.Screen
+                    name="Profile"
+                    component={Profile}/>
             </Tab.Navigator> 
         </NavigationContainer>
     )
 }
 
-const Feed = ({ navigation }) => {
+const MainFeed = ({ navigation }) => {
     return (
       <View>
         <FeedPage/>
