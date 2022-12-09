@@ -1,24 +1,23 @@
+//Imports for general react assets and components
 import * as React from 'react';
 import { useState, useEffect, useReducer, useMemo } from 'react';
 import { Text, View, Button, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
 import { StyleSheet, TextInput } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 
+//Imports for react navigation components
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Octicons } from '@expo/vector-icons';
 
+//Imports for app exports
 import SplashScreen from './components/splashPage.js';
-
 import FeedPage from './components/feedPage';
 import ProfilePage from './components/profilePage';
-import auth from './firebase.js';
-import MainAppBuild from './components/mainApp.js';
 
+//Imports necessary for firebase authentication flow
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 
 const Tab = createBottomTabNavigator();
@@ -26,8 +25,9 @@ const Stack = createNativeStackNavigator();
 const AuthContext = React.createContext();
 
 export default function App() {
-  const auth = getAuth();
-
+  //This is essentially a state changing function that will change the state
+  //when a given action occurs. The action, and therefore the reducer, is 
+  //called by the dispatch command
   const [state, dispatch] = useReducer(
     (prevState, action) => {
       switch (action.type) {
@@ -58,6 +58,8 @@ export default function App() {
     }
   );
 
+  //This is our initial check to see if the user
+  //was previously logged in
   useEffect(() => {
     const bootstrapAsync = async() => {
       let savedToken;
@@ -77,22 +79,20 @@ export default function App() {
     bootstrapAsync();
   }, [])
 
+  //This is our command bank for the general authentication
+  //flow. We can call our commends from here which will in 
+  //turn fire the authentication calls to firebase and send
+  //a state change dispatch to the reducer
   const authContext = useMemo(() => ({
     signIn: async ( email, password) => {
       let userLogin;
-      const auth = getAuth();
-
       signInWithEmailAndPassword(email, password)
             .then(userCredential => {
                 const user = userCredential.user;
-                console.log("Logged in with:", user.email);
+                console.log("Logged in with: ", user.email);
                 
                 SecureStore.setItemAsync('user', JSON.stringify(user));
-
                 userLogin = JSON.parse(user);
-
-                //const userTest = SecureStore.getItemAsync('user');
-                console.log(userTest);
             })
             .catch((error) => {
                 const errorCode = error.code;
@@ -104,14 +104,13 @@ export default function App() {
     },
     signUp: async (email, password) => {
       let userSignUp;
-      //const auth = getAuth();
-
       createUserWithEmailAndPassword(email, password)
             .then(userCredential => {
                 const user = userCredential.user;
-                userSignUp = user;
-                console.log(user.email);
-                //SecureStore.setItemAsync('user', JSON.stringify(user));
+                console.log("New User logged in with: ", user.email)
+                
+                SecureStore.setItemAsync('user', JSON.stringify(user));
+                userSignUp = JSON.parse(user);
             })
             .catch((error) => {
                 const errorCode = error.code;
@@ -124,12 +123,16 @@ export default function App() {
   }), []
   );
 
+  //If checking for the user state, we show a loading screen
   if (state.isLoading) {
     return (
-      <SplashScreen/>
+      <View>
+        <SplashScreen/>
+      </View>
     )
   }
 
+  //Main navigation for authentication flow and main app
   return (
     <NavigationContainer>
       <AuthContext.Provider
@@ -169,56 +172,8 @@ export default function App() {
   );
 };
 
-
-
-/*
-const AppMain = ({ navigation }) => {
-  return (
-    <View>
-      <MainAppBuild/>
-    </View>
-  )
-}
-*/
-
-const MainContainer = ({ navigation }) => {
-  return (
-    <NavigationContainer
-      independent = "true"
-    >
-      <Tab.Navigator
-      screenOptions={({ route }) => ({
-          tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-          
-          if (route.name === 'Feed') {
-              iconName = focused ? 'home' : 'home';
-          } else if (route.name === 'Profile') {
-              iconName = focused ? 'person' : 'person';
-          } else if (route.name === 'Search') {
-              iconName = focused ? 'search' : 'search';
-          }
-
-          return <Octicons name={iconName} color={color} size={size} />;
-          },
-          tabBarActiveTintColor: 'black',
-          tabBarInactiveTintColor: 'grey',
-      })}
-      >
-        <Tab.Screen 
-            name="Feed"
-            component={MainFeed}/>
-        <Tab.Screen
-            name="Search"
-            component={Search}/>
-        <Tab.Screen
-            name="Profile"
-            component={Profile}/>
-      </Tab.Navigator> 
-    </NavigationContainer>
-  )
-}
-
+//Main calls for our navigation to create and import our
+//components
 const MainFeed = ({ navigation }) => {
   return (
     <View>
@@ -364,121 +319,7 @@ const styles = StyleSheet.create({
 
 })
 
-//Code used in NavAuth Example, not sure exactly how it works
+//Below is a test space and holding space for temporarily unused code:
 /*
-  const [state, dispatch] = useReducer(
-    (prevState, action) => {
-      switch (action.type) {
-        case 'RESTORE_TOKEN':
-          return {
-            ...prevState,
-            userToken: action.token,
-            isLoading: false,
-          };
-        case 'SIGN_IN':
-          return {
-            ...prevState,
-            isSignout: false,
-            userToken: action.token,
-          };
-        case 'SIGN_OUT':
-          return {
-            ...prevState,
-            isSignout: true,
-            userToken: null,
-          };
-      }
-    },
-    {
-      isLoading: true,
-      isSignout: false,
-      userToken: null,
-    }
-  );
 
-  useEffect(() => {
-    const bootstrapAsync = async() => {
-      let userToken;
-
-      try {
-        userToken = await SecureStore.getItemAsync('userToken');
-      } catch (error) {
-        console.log(error);
-      };
-
-      dispatch({ type: 'RESTORE_TOKEN', token: userToken });
-    }
-
-    bootstrapAsync();
-  }, [])
-
-  const authContext = useMemo(() => ({
-    signIn: async (data) => {
-      dispatch({ type: 'SIGN_IN', token: 'dummy_auth_token' })
-    },
-    signUp: async (data) => {
-      dispatch({ type: 'SIGN_IN', token: 'dummy_auth_token' })
-    },
-    signOut: () => dispatch({ type: 'SIGN_OUT' })
-  }), []
-  );
-
-  return (
-    <AuthContext.Provider
-      value={authContext}
-      >
-        <Stack.Navigator>
-          {state.userToken == null ? (
-            <Stack.Screen
-            name="Login/Register"
-            component={LoginScreen}
-          />
-          ) : (
-            <Stack.Screen
-            name="Main_App"
-            component={AppMain}
-          />
-          )}
-        </Stack.Navigator>
-    </AuthContext.Provider>
-  );
-*/
-
-//This area is a test area to solve problem with tab navigator
-
-/*
-const HomeScreen = ({ navigation }) => {
-  return(
-    <Tab.Navigator>
-      <Tab.Screen
-        name="screen1"
-        component={Screen1}
-        />
-      <Tab.Screen
-        name="screen2"
-        component={Screen2}
-      />
-    </Tab.Navigator>
-  )
-}
-
-const Screen1 = ({ navigation }) => {
-  return(
-    <View>
-      <Text>
-        Screen 1
-      </Text>
-    </View>
-  )
-}
-
-const Screen2 = ({ navigation }) => {
-  return(
-    <View>
-      <Text>
-        Screen 2
-      </Text>
-    </View>
-  )
-}
 */
