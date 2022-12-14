@@ -4,22 +4,16 @@ import { Text, View, Platform, Image, FlatList, Dimensions, } from 'react-native
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import PostOne from '../assets/icon.png'
 import pfp from "../assets/pfp.png"
 
-const windowWidthLess = Dimensions.get('window').width - 11.5;
 const profileHeight = 355;
 const flatListHeight = Dimensions.get('window').height - profileHeight;
-const windowHeight = Dimensions.get('window').height - 250;
 const windowHeightFull = Dimensions.get('window').height + 5;
 const windowWidth = Dimensions.get('window').width;
-
-//Most recent try: Pulling the posts from the database grab instead of getting them from the posts grab function
 
 export default function ProfilePage() {
   const [loadState, setLoadState] = useState(0);
   const [data, setData] = useState([]);
-  const [posts, setPosts] = useState([]);
     
   if (loadState == 0) {
     var request = new XMLHttpRequest();
@@ -49,11 +43,6 @@ export default function ProfilePage() {
   }
 
   if ( loadState == 2 ) {
-    /*
-    console.log(posts)
-    console.log(data.posts);
-    console.log(data.posts[0].content);
-    */
     if ( Platform.OS === 'ios' ) {
       return (
       <View 
@@ -151,66 +140,3 @@ export default function ProfilePage() {
     }
   }
 }
-
-//Image display code
-/*
-<Image
-                source={item.img}
-                style={{
-                height: 96,
-                width: 96,
-                position: 'absolute',
-                top: 2,
-                left: 2
-                }}/>
-*/
-
-//Test DATA Code
-/*
-const DATA = [
-    {
-      img: PostOne,
-      description: "This is my first post."
-    },
-    {
-      img: PostOne,
-      description: "This is my second post."
-    },
-    {
-      img: PostOne,
-      description: "This is my third post."
-    },
-    {
-      img: PostOne,
-      description: "This is my fourth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my fifth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my sixth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my sixth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my sixth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my sixth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my sixth post."
-    },
-    {
-      img: PostOne,
-      description: "This is my sixth post."
-    }
-  ]
-*/

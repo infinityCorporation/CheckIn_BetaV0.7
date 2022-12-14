@@ -12,22 +12,44 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Octicons } from '@expo/vector-icons';
 
 //Imports for app exports
-import SplashScreen from './components/splashPage.js';
 import FeedPage from './components/feedPage';
 import ProfilePage from './components/profilePage';
+import SplashScreen from './components/splashPage.js';
 
 //Imports necessary for firebase authentication flow
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import * as SecureStore from 'expo-secure-store';
+import { auth } from './firebase.js';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 const AuthContext = React.createContext();
 
+//The concept for the new system of authentication is to use
+//the google authentication through firebase to log users in. Then, the 
+//state will be stored through a simpler reducer. The firebase modules
+//will be moved from the reducer to the actually log in page 
+//found below.
+
+//Even if the same system ends up being rebuilt, it will give a better
+//understanding of how the system works. The main issue right now is that I
+//am completely unable to assign a value to the state. It contiues to
+//return that it is a 'readonly' state, even though this is how the 
+//documentation continues to show it. 
+
+//---------------------
+
+//Consider moving the dispatch commands into the actual sign in functions
+//such that the result may be returned as a value other than 'undefined'
+//or 'null'
+
+
 export default function App() {
+
   //This is essentially a state changing function that will change the state
   //when a given action occurs. The action, and therefore the reducer, is 
   //called by the dispatch command
+
   const [state, dispatch] = useReducer(
     (prevState, action) => {
       switch (action.type) {
@@ -38,12 +60,21 @@ export default function App() {
             isLoading: false,
           };
         case 'SIGN_IN':
+          console.log("The action token is: ", action.token);
           return {
             ...prevState,
             isSignout: false,
             userToken: action.token,
+            isLoading: false
+          };
+        case 'USER_LOGIN':
+          return {
+            ...prevState,
+            isSignout: false,
+            isLoading: false
           };
         case 'SIGN_OUT':
+          SecureStore.deleteItemAsync('user');
           return {
             ...prevState,
             isSignout: true,
@@ -54,7 +85,7 @@ export default function App() {
     {
       isLoading: true,
       isSignout: false,
-      userToken: null,
+      userToken: null
     }
   );
 
@@ -62,67 +93,79 @@ export default function App() {
   //was previously logged in
   useEffect(() => {
     const bootstrapAsync = async() => {
-      let savedToken;
 
       try {
-        savedToken = await SecureStore.getItemAsync('user');
-        const user = JSON.parse(savedToken)
-        console.log(savedToken)
-        console.log("User Logged in under email:", user.email);
+        const user = await SecureStore.getItemAsync('user');
+
+        if (user != null) {
+          console.log("User Logged in with token:", user.accessToken);
+
+          signInWithEmailAndPassword(auth, user.email)
+          dispatch({ type: 'RESTORE_TOKEN', token: user });
+        } else {
+          console.log("User must sign in")
+          dispatch({ type: 'USER_LOGIN' })
+        };
+
       } catch (error) {
         console.log(error);
       };
 
-      dispatch({ type: 'RESTORE_TOKEN', token: savedToken });
-    }
+    };
 
     bootstrapAsync();
-  }, [])
+    console.log(state.userToken)
+  }, []);
 
   //This is our command bank for the general authentication
   //flow. We can call our commends from here which will in 
   //turn fire the authentication calls to firebase and send
   //a state change dispatch to the reducer
-  const authContext = useMemo(() => ({
-    signIn: async ( email, password) => {
-      let userLogin;
-      signInWithEmailAndPassword(email, password)
-            .then(userCredential => {
-                const user = userCredential.user;
-                console.log("Logged in with: ", user.email);
-                
-                SecureStore.setItemAsync('user', JSON.stringify(user));
-                userLogin = JSON.parse(user);
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                console.log(errorCode, ' ', errorMessage);
-            })
 
-      dispatch({ type: 'SIGN_IN', token: userLogin })
+  const authContext = useMemo(() => ({
+    signIn: async (email, password) => {
+      let userLogin;
+
+      signInWithEmailAndPassword(auth, email, password, userLogin)
+        .then(userCredential => {
+            const user = userCredential.user;
+
+            SecureStore.setItemAsync('user', JSON.stringify(userCredential.user));
+            userLogin = user;
+
+            dispatch({ type: 'SIGN_IN', token: user })
+        })
+        .catch((error) => {
+            console.log({ message: error.message });
+            console.log({ code: error.code })
+        })
+
     },
     signUp: async (email, password) => {
       let userSignUp;
-      createUserWithEmailAndPassword(email, password)
+
+      createUserWithEmailAndPassword(auth, email, password)
             .then(userCredential => {
                 const user = userCredential.user;
-                console.log("New User logged in with: ", user.email)
                 
-                SecureStore.setItemAsync('user', JSON.stringify(user));
-                userSignUp = JSON.parse(user);
+                //SecureStore.setItemAsync('user', JSON.stringify(user));
+                userSignUp = user;
+                dispatch({ type: 'SIGN_IN', token: userSignUp })
             })
             .catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
                 console.log(errorCode, ' ', errorMessage);
             })
-      dispatch({ type: 'SIGN_IN', token: userSignUp })
+
     },
-    signOut: () => dispatch({ type: 'SIGN_OUT' })
+    signOut: () => {
+      dispatch({ type: 'SIGN_OUT' })
+    }
+
   }), []
   );
-
+  
   //If checking for the user state, we show a loading screen
   if (state.isLoading) {
     return (
@@ -131,7 +174,7 @@ export default function App() {
       </View>
     )
   }
-
+  
   //Main navigation for authentication flow and main app
   return (
     <NavigationContainer>
@@ -154,6 +197,8 @@ export default function App() {
                     iconName = focused ? 'person' : 'person';
                 } else if (route.name === 'Search') {
                     iconName = focused ? 'search' : 'search';
+                } else if (route.name === "Settings" ) {
+                  iconName = focused ? 'gear': 'gear';
                 }
       
                 return <Octicons name={iconName} color={color} size={size} />;
@@ -165,22 +210,13 @@ export default function App() {
               <Tab.Screen name="Home" component={FeedPage} />
               <Tab.Screen name="Search" component={Search} />
               <Tab.Screen name="Profile" component={Profile} />
+              <Tab.Screen name="Settings" component={Settings} />
             </Tab.Navigator>
           )}
       </AuthContext.Provider>
     </NavigationContainer>
   );
 };
-
-//Main calls for our navigation to create and import our
-//components
-const MainFeed = ({ navigation }) => {
-  return (
-    <View>
-      <FeedPage/>
-    </View>
-  )
-}
 
 const Profile = ({ navigation }) => {
   return (
@@ -215,6 +251,38 @@ const LoginPage = ({ navigation }) => {
   const { signIn } = React.useContext(AuthContext);
   const { signUp } = React.useContext(AuthContext);
 
+  //This code will be commented out for testing tomorrow
+  /*
+  const auth = getAuth();
+
+  function handleSignIn(auth, email, password) {
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        console.log(user.email);
+        console.log(user.token);
+        dispatch({ type: 'SIGN_IN', token: user.token })
+        return user;
+      })
+      .catch((error) => {
+        console.log(error);
+      })
+  }
+
+  function handleSignUp(auth, email, password) {
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        console.log("New User Created with Email: ", user.email);
+        dispatch({ type: 'SIGN_IN', token: user.token })
+        return user;
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
+  */
+
   return (
       <KeyboardAvoidingView
           style={styles.container}
@@ -232,7 +300,7 @@ const LoginPage = ({ navigation }) => {
               <TextInput
                   placeholder='Password'
                   value={password}
-                  onChangeText={text => setPassword(text)}
+                  onChangeText={newText => setPassword(newText)}
                   style={styles.input}
                   secureTextEntry
               />
@@ -241,27 +309,54 @@ const LoginPage = ({ navigation }) => {
               style={styles.buttonContainer}
           >
               <TouchableOpacity
-                  onPress={() => signIn({ email, password})}
+                  onPress={() => signIn( email, password )}
                   style={styles.button}
               >
-                  <Text
-                      style={styles.buttonText}
-                  >
-                      Login
-                  </Text>
+                <Text
+                  style={styles.buttonText}
+                >
+                  Login
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                  onPress={() => signUp({ email, password })}
+                  onPress={() => signUp( email, password )}
                   style={[styles.buttonText, styles.buttonOutline]}
               >
-                  <Text
-                      style={styles.buttonOutlineText}
-                  >
-                      Register
-                  </Text>
+                <Text
+                  style={styles.buttonOutlineText}
+                >
+                  Register
+                </Text>
               </TouchableOpacity>
           </View>
       </KeyboardAvoidingView>
+  )
+};
+
+const Settings = ({ navigation }) => {
+  const { signOut } = React.useContext(AuthContext);
+
+  return(
+    <View>
+      <Text
+        style={styles.settingsText}
+      >
+        - Sign Out of Account -
+      </Text>
+      <TouchableOpacity
+        onPress={() => signOut()}
+        style={[styles.buttonText, styles.buttonOutline]}
+      >
+        <Text
+          style={styles.buttonOutlineText}
+        >
+          Sign Out
+        </Text>
+      </TouchableOpacity>
+      <Text>
+
+      </Text>
+    </View>
   )
 };
 
@@ -315,9 +410,14 @@ const styles = StyleSheet.create({
       color: '#0782F9',
       fontWeight: '700',
       fontSize: 16
-  }
-
-})
+  },
+  settingsText: {
+    textAlign: 'center',
+    color: 'black',
+    fontWeight: '800',
+    fontsize: 14
+  },
+});
 
 //Below is a test space and holding space for temporarily unused code:
 /*
