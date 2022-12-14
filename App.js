@@ -4,6 +4,7 @@ import { useState, useEffect, useReducer, useMemo } from 'react';
 import { Text, View, Button, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
 import { StyleSheet, TextInput } from 'react-native';
 import { SearchBar } from 'react-native-elements';
+import { LinearGradient } from 'expo-linear-gradient';
 
 //Imports for react navigation components
 import { NavigationContainer } from '@react-navigation/native';
@@ -182,8 +183,30 @@ export default function App() {
         value={authContext}
         >
           {state.userToken == null ? (
-            <Stack.Navigator>
-              <Stack.Screen name="Login" component={LoginPage} />
+            <Stack.Navigator 
+              initialRouteName="Welcome"
+            >
+              <Stack.Screen 
+                name="Welcome" 
+                component={EntryPage}
+                options={{headerShown: false}}
+              />
+              <Stack.Screen 
+                name="Register" 
+                component={RegistrationPage}
+                options={{
+                  headerShown: true,
+                  headerBackTitle: "Home",
+                }}
+              />
+              <Stack.Screen 
+                name="Login" 
+                component={LoginPage}
+                options={{
+                  headerShown: true,
+                  headerBackTitle: "Home",
+                }} 
+              />
             </Stack.Navigator>
           ) : (
             <Tab.Navigator
@@ -209,7 +232,7 @@ export default function App() {
             >
               <Tab.Screen name="Home" component={FeedPage} />
               <Tab.Screen name="Search" component={Search} />
-              <Tab.Screen name="Profile" component={Profile} />
+              <Tab.Screen name="Profile" component={ProfilePage} />
               <Tab.Screen name="Settings" component={Settings} />
             </Tab.Navigator>
           )}
@@ -217,14 +240,6 @@ export default function App() {
     </NavigationContainer>
   );
 };
-
-const Profile = ({ navigation }) => {
-  return (
-    <View>
-      <ProfilePage/>
-    </View>
-  )
-}
 
 const Search = ({ navigation }) => {
   const [search, setSearch] = useState('');
@@ -244,92 +259,168 @@ const Search = ({ navigation }) => {
   )
 }
 
+const EntryPage = ({ navigation }) => {
+  return(
+    <View
+      style={entry.mainView}
+    >
+      <LinearGradient
+        colors={['rgba(0,0,0,0.8)', 'transparent']}
+        style={entry.gradient}
+      >
+        <View
+          style={entry.contentContainer}
+        >
+          <Text
+            style={entry.mainTextFirst}
+          >
+            Welcome to
+          </Text>
+          <Text
+            style={entry.mainTextSecond}
+          >
+            CheckIn.
+          </Text>
+          <TouchableOpacity
+            style={entry.button}
+            onPress={() => navigation.navigate("Register")}
+          >
+            <Text
+              style={entry.buttonText}
+            >
+              Register
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={entry.button}
+            onPress={() => navigation.navigate("Login")}
+          >
+            <Text
+              style={entry.buttonText}
+            >
+              Login
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+    </View>
+  )
+}
+
+const RegistrationPage = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+
+  const { SignUp } = React.useContext(AuthContext);
+
+  return(
+    <LinearGradient
+      colors={['rgba(0,0,0,0.8)', 'transparent']}
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#68D39F'
+      }}
+    >
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior='padding'
+      >
+        <View
+          style={styles.inputContainer}
+        >
+          <TextInput
+              placeholder="Username"
+              value={username}
+              onChangeText={text => setUsername(text)}
+              style={styles.input}
+          />
+          <TextInput
+              placeholder="Email"
+              value={email}
+              onChangeText={text => setEmail(text)}
+              style={styles.input}
+          />
+          <TextInput
+              placeholder='Password'
+              value={password}
+              onChangeText={newText => setPassword(newText)}
+              style={styles.input}
+              secureTextEntry
+          />
+        </View>
+        <View
+            style={styles.buttonContainer}
+        >
+          <TouchableOpacity
+              onPress={() => SignUp( email, password )}
+              style={[styles.buttonText, styles.button]}
+          >
+            <Text
+              style={styles.buttonText}
+            >
+              Register
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </LinearGradient>
+  )
+}
+
 const LoginPage = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const { signIn } = React.useContext(AuthContext);
-  const { signUp } = React.useContext(AuthContext);
-
-  //This code will be commented out for testing tomorrow
-  /*
-  const auth = getAuth();
-
-  function handleSignIn(auth, email, password) {
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        console.log(user.email);
-        console.log(user.token);
-        dispatch({ type: 'SIGN_IN', token: user.token })
-        return user;
-      })
-      .catch((error) => {
-        console.log(error);
-      })
-  }
-
-  function handleSignUp(auth, email, password) {
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        console.log("New User Created with Email: ", user.email);
-        dispatch({ type: 'SIGN_IN', token: user.token })
-        return user;
-      })
-      .catch((error) => {
-        console.log(error)
-      })
-  }
-  */
 
   return (
+    <LinearGradient
+      colors={['rgba(0,0,0,0.8)', 'transparent']}
+      style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#68C9D3'
+      }}
+    >
       <KeyboardAvoidingView
           style={styles.container}
           behavior="padding"
       >
-          <View
-              style={styles.inputContainer}
+        <View
+            style={styles.inputContainerLogin}
+        >
+          <TextInput
+              placeholder="Email"
+              value={email}
+              onChangeText={text => setEmail(text)}
+              style={styles.input}
+          />
+          <TextInput
+              placeholder='Password'
+              value={password}
+              onChangeText={newText => setPassword(newText)}
+              style={styles.input}
+              secureTextEntry
+          />
+        </View>
+        <View
+            style={styles.buttonContainer}
+        >
+          <TouchableOpacity
+              onPress={() => signIn( email, password )}
+              style={styles.button}
           >
-              <TextInput
-                  placeholder="Email"
-                  value={email}
-                  onChangeText={text => setEmail(text)}
-                  style={styles.input}
-              />
-              <TextInput
-                  placeholder='Password'
-                  value={password}
-                  onChangeText={newText => setPassword(newText)}
-                  style={styles.input}
-                  secureTextEntry
-              />
-          </View>
-          <View
-              style={styles.buttonContainer}
-          >
-              <TouchableOpacity
-                  onPress={() => signIn( email, password )}
-                  style={styles.button}
-              >
-                <Text
-                  style={styles.buttonText}
-                >
-                  Login
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                  onPress={() => signUp( email, password )}
-                  style={[styles.buttonText, styles.buttonOutline]}
-              >
-                <Text
-                  style={styles.buttonOutlineText}
-                >
-                  Register
-                </Text>
-              </TouchableOpacity>
-          </View>
+            <Text
+              style={styles.buttonText}
+            >
+              Login
+            </Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
+    </LinearGradient>
   )
 };
 
@@ -372,6 +463,11 @@ const styles = StyleSheet.create({
       position: 'absolute',
       top: 100
   },
+  inputContainerLogin: {
+    width: '80%',
+    position: 'absolute',
+    top: 150
+},
   input: {
       backgroundColor: 'white',
       paddingHorizontal: 15,
@@ -384,7 +480,7 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center',
       position: 'absolute',
-      top: 200
+      top: 250
   },
   button: {
       backgroundColor: '#0782F9',
@@ -418,6 +514,53 @@ const styles = StyleSheet.create({
     fontsize: 14
   },
 });
+
+const entry = StyleSheet.create({
+  mainTextFirst: {
+    fontWeight: '700',
+    fontSize: '20',
+    color: 'white',
+    marginBottom: 5
+  },
+  mainTextSecond: {
+    fontWeight: '900',
+    fontSize: '32',
+    color: 'white',
+    marginBottom: 75,
+  },
+  gradient: {
+    width: '100%',
+    backgroundColor: '#7F66D5',
+    alignItems: 'center'
+  },
+  mainView: {
+    flex: 1,
+    background: 'white',
+    alignItems: 'center',
+    //justifyContent: 'center'
+  },
+  contentContainer: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center'
+    //bottom: 100
+  },
+  button: {
+    backgroundColor: '#0782F9',
+    width: '80%',
+    padding: 15,
+    borderRadius: 10,
+    margin: 5,
+    
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 16,
+    textAlign: 'center'
+  },
+})
 
 //Below is a test space and holding space for temporarily unused code:
 /*

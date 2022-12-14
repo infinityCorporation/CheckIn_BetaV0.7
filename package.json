@@ -18,6 +18,7 @@
     "cocoapods": "^0.0.0",
     "dependencies": "^0.0.1",
     "expo": "~47.0.3",
+    "expo-linear-gradient": "^12.0.1",
     "expo-secure-store": "^12.0.0",
     "firebase": "^9.14.0",
     "react": "^18.1.0",
