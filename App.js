@@ -99,9 +99,16 @@ export default function App() {
         const user = await SecureStore.getItemAsync('user');
 
         if (user != null) {
-          console.log("User Logged in with token:", user.accessToken);
+          console.log("User Logged in with email:", user.email);
 
-          signInWithEmailAndPassword(auth, user.email)
+          onAuthStateChanged(auth, (user) => {
+            if (user) {
+              console.log(user);
+            } else {
+              console.log("No user is signed in...");
+            }
+          })
+
           dispatch({ type: 'RESTORE_TOKEN', token: user });
         } else {
           console.log("User must sign in")
@@ -230,9 +237,21 @@ export default function App() {
                 tabBarInactiveTintColor: 'grey',
               })}
             >
-              <Tab.Screen name="Home" component={FeedPage} />
+              <Tab.Screen 
+                name="Home" 
+                component={FeedPage} 
+                options={{
+                  headerShown: false
+                }}
+              />
               <Tab.Screen name="Search" component={Search} />
-              <Tab.Screen name="Profile" component={ProfilePage} />
+              <Tab.Screen 
+                name="Profile" 
+                component={ProfilePage} 
+                options={{
+                  headerShown: false
+                }}
+              />
               <Tab.Screen name="Settings" component={Settings} />
             </Tab.Navigator>
           )}
@@ -312,7 +331,7 @@ const RegistrationPage = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
 
-  const { SignUp } = React.useContext(AuthContext);
+  const { signUp } = React.useContext(AuthContext);
 
   return(
     <LinearGradient
@@ -354,7 +373,7 @@ const RegistrationPage = ({ navigation }) => {
             style={styles.buttonContainer}
         >
           <TouchableOpacity
-              onPress={() => SignUp( email, password )}
+              onPress={() => signUp( email, password )}
               style={[styles.buttonText, styles.button]}
           >
             <Text
@@ -427,16 +446,20 @@ const LoginPage = ({ navigation }) => {
 const Settings = ({ navigation }) => {
   const { signOut } = React.useContext(AuthContext);
 
+  const user = auth.currentUser;
+
   return(
-    <View>
+    <View
+      style={styles.settingsView}
+    >
       <Text
-        style={styles.settingsText}
+        style={styles.settingsTextFirst}
       >
         - Sign Out of Account -
       </Text>
       <TouchableOpacity
         onPress={() => signOut()}
-        style={[styles.buttonText, styles.buttonOutline]}
+        style={[styles.buttonText, styles.buttonOutlineSettings]}
       >
         <Text
           style={styles.buttonOutlineText}
@@ -444,8 +467,22 @@ const Settings = ({ navigation }) => {
           Sign Out
         </Text>
       </TouchableOpacity>
-      <Text>
-
+      <Text
+        style={styles.settingsText}
+      >
+        - Signed in With Email -
+      </Text>
+      <View
+        style={styles.emailView}
+      >
+        <Text>
+          {user.email}
+        </Text>
+      </View>
+      <Text
+        style={styles.settingsText}
+      >
+        - Change Navigation Bar Color -
       </Text>
     </View>
   )
@@ -497,6 +534,16 @@ const styles = StyleSheet.create({
       borderColor: '#0782F9',
       borderWidth: 2
   },
+  buttonOutlineSettings: {
+    padding: 15,
+    borderRadius: 10,
+    width: '90%',
+    backgroundColor: 'white',
+    marginTop: 5,
+    borderColor: '#0782F9',
+    borderWidth: 2,
+    alignItems: 'center'
+  },
   buttonText: {
       color: 'white',
       fontWeight: '700',
@@ -507,12 +554,37 @@ const styles = StyleSheet.create({
       fontWeight: '700',
       fontSize: 16
   },
+  settingsView: {
+    alignItems: 'center',
+    backgroundColor: 'white',
+    height: '100%'
+  },
   settingsText: {
     textAlign: 'center',
     color: 'black',
     fontWeight: '800',
-    fontsize: 14
+    fontsize: 14,
+    marginTop: 35,
   },
+  settingsTextFirst: {
+    textAlign: 'center',
+    color: 'black',
+    fontWeight: '800',
+    fontsize: 14,
+    marginTop: 20,
+    
+  },
+  emailView: {
+    width: '90%',
+    height: 60,
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: 'black',
+    backgroundColor: 'lightgray',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 5
+  }
 });
 
 const entry = StyleSheet.create({
@@ -535,16 +607,13 @@ const entry = StyleSheet.create({
   },
   mainView: {
     flex: 1,
-    background: 'white',
     alignItems: 'center',
-    //justifyContent: 'center'
   },
   contentContainer: {
     width: '100%',
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center'
-    //bottom: 100
   },
   button: {
     backgroundColor: '#0782F9',
@@ -560,6 +629,8 @@ const entry = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center'
   },
+  
+  
 })
 
 //Below is a test space and holding space for temporarily unused code:

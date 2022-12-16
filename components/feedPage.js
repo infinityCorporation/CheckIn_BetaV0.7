@@ -1,6 +1,13 @@
+//General React Imports
 import * as React from 'react';
 import { useState } from 'react';
+
+//React component imports
 import { Text, FlatList, View, StyleSheet, Platform, Dimensions } from 'react-native';
+
+//Expo module imports
+import { LinearGradient } from 'expo-linear-gradient';
+import { Octicons } from '@expo/vector-icons';
 
 const windowHeight = Dimensions.get('window').height;
 const windowWidth = Dimensions.get('window').width;
@@ -17,6 +24,17 @@ export default function FeedPage() {
     const [liked, setLiked] = useState(false)
     
     if ( loadState == 0 ) {
+
+        /*
+        fetch('https://postsbase.herokuapp.com/posts')
+            .then((response) => {
+                console.log(response);
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+        */
+
         var request = new XMLHttpRequest();
         request.onreadystatechange = (e) => {
             if (request.readyState !== 4) {
@@ -42,6 +60,7 @@ export default function FeedPage() {
             </View>
         )
     }
+    
 
     if ( loadState == 2 ) {
         if (Platform.OS !== 'ios') {
@@ -71,64 +90,83 @@ export default function FeedPage() {
                     borderWidth: 4,
                     borderColor: 'black'
                 }}>
-                    You've reached the end of the line! Maybe take a break from your phone for a bit. :)
+                    You've reached the end of the line! Maybe take a break from your phone for a bit.
                 </Text>
             </View>
             );
         } else if (Platform.OS === 'ios') {
         return(
-        <View
-        style={{
-            backgroundColor: '#1DA1F2'
-        }}>
-            <FlatList
-            contentContainerStyle={{
-                paddingTop: 14,
-                paddingBottom: 10,
-                paddingLeft: 10
+            <View
+            style={{
+                backgroundColor: 'white'
             }}
-            data={data}
-            renderItem={ ({item}) => 
-                <View 
-                style={{
-                    height: 150,
-                    width: postViewSizeWidth,
-                    borderWidth: 3,
-                    borderColor: 'black',
-                    borderRadius: 15,
-                    margin: 6,
-                    backgroundColor: 'white'
-                }}>
-                    <Text
+            >
+                <LinearGradient
+                    colors={['rgba(0,0,0,0.8)', 'transparent']}
+                    style={styles.gradient}
+                >
+                
+                    <FlatList
                     style={{
-                        position: 'absolute',
-                        top: 10,
-                        left: 4,
-                        fontSize: 18
-                    }}>
-                        {item.username}
-                    </Text>
-                    <Text
-                    style={{
-                        position: 'absolute',
-                        top: 45,
-                        left: 4,
-                    }}>
-                        {item.content}
-                    </Text>
-                    <Text
-                    style={{
-                        position: 'absolute',
-                        top: 10,
-                        right: 8
+                        top: 40
                     }}
-                    >
-                        {item.likes}
-                    </Text>
-                </View>
-            }
-            />
-        </View>
+                    contentContainerStyle={{
+                        paddingBottom: 42,
+                        paddingLeft: 3
+                    }}
+                    data={data}
+                    renderItem={ ({item}) => 
+                        <View 
+                        style={{
+                            height: 150,
+                            width: postViewSizeWidth,
+                            borderWidth: 3,
+                            borderColor: 'black',
+                            borderRadius: 14,
+                            margin: 6,
+                            backgroundColor: 'white'
+                        }}>
+                            <Text
+                            style={{
+                                position: 'absolute',
+                                top: 8,
+                                left: 8,
+                                fontSize: 18
+                            }}>
+                                {item.username}
+                            </Text>
+                            <Text
+                            style={{
+                                position: 'absolute',
+                                top: 40,
+                                left: 8,
+                            }}>
+                                {item.content}
+                            </Text>
+                            <Octicons
+                                name='heart'
+                                size={20}
+                                style={{
+                                    position: 'absolute',
+                                    top: 120,
+                                    right: 22
+                                }}
+                            />
+                            <Text
+                            style={{
+                                position: 'absolute',
+                                top: 118,
+                                right: 8,
+                                fontSize: 15
+                            }}
+                            >
+                                {item.likes}
+                            </Text>
+                        </View>
+                    }
+                    />
+                </LinearGradient>
+            </View>
         );}
     }
 }
@@ -157,5 +195,10 @@ const styles = StyleSheet.create({
       position: 'absolute',
       top: 30,
       left: 150,
-    }
+    },
+    gradient: {
+        width: '100%',
+        backgroundColor: '#7F66D5',
+        alignItems: 'center'
+    },
 });
