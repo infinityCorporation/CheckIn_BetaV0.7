@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { Text, View, Platform, Image, FlatList, Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, View, Platform, Image, FlatList, Dimensions, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -49,63 +49,74 @@ export default function ProfilePage() {
         <View 
         style={styles.mainView}
         >
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.7)']}
-            style={{
-              width: '100%',
-              height: '100%'
-            }}
-          >
           <View
-            style={styles.secondaryView}
+            style={styles.fixedView}
           >
-            <Image
-              source={pfp}
-              style={styles.image}
-            />
             <Text
-              style={styles.nameText}
-            > 
-              {data.name} 
-            </Text>
-            <Text
-              style={styles.descriptionText}
-            > 
-              {data.description} 
-            </Text>
-            <TouchableOpacity
-              style={[styles.buttonOutline, styles.buttonText]}
+              style={styles.topText}
             >
-              <Text
-                style={styles.buttonOutlineText}
-              >
-                Follow
-              </Text>
-            </TouchableOpacity>
+              Profile
+            </Text>
           </View>
-          <View>
-            <FlatList
-              style={styles.flatlist}
-              contentContainerStyle={{
-                  paddingLeft: 4,
-                  paddingBottom: 25,
-                  paddingTop: 10
+          <ScrollView>
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.7)']}
+              style={{
+                width: '100%',
+                height: '100%'
               }}
-              data={data.posts}
-              renderItem={ ({item}) => 
-                <View
-                  style={styles.thirdView}
-                > 
-                  <Text
-                    style={styles.postText}
-                  >
-                    {item.content}
-                  </Text>
-                </View>
-                }
-            />
-          </View>
-          </LinearGradient>
+            >
+            <View
+              style={styles.secondaryView}
+            >
+              <Image
+                source={pfp}
+                style={styles.image}
+              />
+              <Text
+                style={styles.nameText}
+              > 
+                {data.name} 
+              </Text>
+              <Text
+                style={styles.descriptionText}
+              > 
+                {data.description} 
+              </Text>
+              <TouchableOpacity
+                style={[styles.buttonOutline, styles.buttonText]}
+              >
+                <Text
+                  style={styles.buttonOutlineText}
+                >
+                  Follow
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View>
+              <FlatList
+                style={styles.flatlist}
+                contentContainerStyle={{
+                    paddingLeft: 4,
+                    paddingBottom: 25,
+                    paddingTop: 10
+                }}
+                data={data.posts}
+                renderItem={ ({item}) => 
+                  <View
+                    style={styles.thirdView}
+                  > 
+                    <Text
+                      style={styles.postText}
+                    >
+                      {item.content}
+                    </Text>
+                  </View>
+                  }
+              />
+            </View>
+            </LinearGradient>
+          </ScrollView>
         </View>
       );
     } else {
@@ -123,15 +134,15 @@ export default function ProfilePage() {
 const styles = StyleSheet.create({
   mainView: {
     backgroundColor: '#A6F6E7',
-    height: windowHeightFull,
+    //height: windowHeightFull,
     width: windowWidth + 100,
-    position: 'absolute',
-    top: -10
+    //position: 'absolute',
   },
   secondaryView: {
+    position: 'static',
     borderBottomWidth: 3,
     borderBottomColor: 'black',
-    height: 320,
+    height: 270,
     left: 0,
     top: -10,
     width: windowWidth,
@@ -144,23 +155,23 @@ const styles = StyleSheet.create({
     borderColor: 'black',
     borderWidth: 1,
     position: 'absolute',
-    top: 64,
+    top: 25,
     left: 15
   },
   nameText: {
     position: 'absolute',
-    top: 175,
+    top: 130,
     left: 15,
     fontSize: 18
   },
   descriptionText: {
     position: 'absolute',
-    top: 205,
+    top: 158,
     left: 15
   },
   flatlist: {
     top: -10,
-    height: flatListHeight + 20,
+    height: windowHeightFull,
   },
   thirdView: {
     height: 100,
@@ -180,12 +191,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: '80%',
     backgroundColor: 'white',
-    top: 255,
+    top: 210,
     borderColor: '#0782F9',
     borderWidth: 2,
     alignItems: 'center',
     left: 15
-    
   },
   buttonText: {
     color: 'white',
@@ -197,4 +207,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16
   },
+  fixedView: {
+    position: 'fixed',
+    height: 80,
+    backgroundColor: 'black',
+    width: '80%',
+    alignItems: 'center',
+  },
+  topText: {
+    color: 'white',
+    top: 45,
+    fontSize: 18,
+    fontWeight: 'bold'
+  }
 })

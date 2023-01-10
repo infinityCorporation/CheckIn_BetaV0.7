@@ -1,7 +1,7 @@
 //Imports for general react assets and components
 import * as React from 'react';
 import { useState, useEffect, useReducer, useMemo } from 'react';
-import { Text, View, Button, KeyboardAvoidingView, TouchableOpacity } from 'react-native';
+import { Text, View, KeyboardAvoidingView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { StyleSheet, TextInput } from 'react-native';
 import { SearchBar } from 'react-native-elements';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,33 +16,27 @@ import { Octicons } from '@expo/vector-icons';
 import FeedPage from './components/feedPage';
 import ProfilePage from './components/profilePage';
 import SplashScreen from './components/splashPage.js';
+import FeedNav from './components/feedNav.js';
 
 //Imports necessary for firebase authentication flow
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import * as SecureStore from 'expo-secure-store';
 import { auth } from './firebase.js';
+import { async } from '@firebase/util';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 const AuthContext = React.createContext();
 
-//The concept for the new system of authentication is to use
-//the google authentication through firebase to log users in. Then, the 
-//state will be stored through a simpler reducer. The firebase modules
-//will be moved from the reducer to the actually log in page 
-//found below.
+//NOTES:
 
-//Even if the same system ends up being rebuilt, it will give a better
-//understanding of how the system works. The main issue right now is that I
-//am completely unable to assign a value to the state. It contiues to
-//return that it is a 'readonly' state, even though this is how the 
-//documentation continues to show it. 
+//The loading page to register the user with google and the mongoDB should now be working. Further
+//testing will be completed. Test on 3 user accounts, obtain a general time that it takes to load.
 
-//---------------------
-
-//Consider moving the dispatch commands into the actual sign in functions
-//such that the result may be returned as a value other than 'undefined'
-//or 'null'
+//Check the response and make sure that it checks out and has not returned an error
+//Handle errors better. For example, send back to registration page if the information is bad.
+//If the account already exists, send the user to the login page to sign in.
+//Get rid of the back button on the loading page, could effect how the hook is handled.
 
 
 export default function App() {
@@ -66,13 +60,21 @@ export default function App() {
             ...prevState,
             isSignout: false,
             userToken: action.token,
-            isLoading: false
+            isLoading: false,
+            name: null,
+            userEmail: null,
+            username: null,
+            password: null
           };
         case 'USER_LOGIN':
           return {
             ...prevState,
             isSignout: false,
-            isLoading: false
+            isLoading: false,
+            name: null,
+            userEmail: null,
+            username: null,
+            password: null
           };
         case 'SIGN_OUT':
           SecureStore.deleteItemAsync('user');
@@ -80,13 +82,29 @@ export default function App() {
             ...prevState,
             isSignout: true,
             userToken: null,
+            name: null,
+            userEmail: null,
+            username: null,
+            password: null
           };
+        case 'SEND_JSON':
+          return {
+            ...prevState,
+            name: action.name,
+            username: action.username,
+            userEmail: action.email,
+            password: action.password
+          }
       }
     },
     {
       isLoading: true,
       isSignout: false,
-      userToken: null
+      userToken: null,
+      name: null,
+      username: null,
+      userEmail: null,
+      password: null
     }
   );
 
@@ -149,23 +167,37 @@ export default function App() {
         })
 
     },
-    signUp: async (email, password) => {
-      let userSignUp;
-
+    signUp: async (nameReal, usernameInput, email, password) => {
+      dispatch({ type:'SEND_JSON', name: nameReal, username: usernameInput, userEmail: email, password: password});
+    },
+    googleSignUp: async (email, password) => {
       createUserWithEmailAndPassword(auth, email, password)
-            .then(userCredential => {
-                const user = userCredential.user;
-                
-                //SecureStore.setItemAsync('user', JSON.stringify(user));
-                userSignUp = user;
-                dispatch({ type: 'SIGN_IN', token: userSignUp })
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                console.log(errorCode, ' ', errorMessage);
-            })
+        .then(userCredential => {
+          const user = userCredential.user;
+          SecureStore.setItemAsync('user', JSON.stringify(userCredential.user));
+          userSignUp = user;
+          dispatch({ type: 'SIGN_IN', token: userSignUp })
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          console.log(errorCode, ' ', errorMessage);
+        });
+    },
+    collectJSON: async () => {
+      const name = state.name;
+      const username = state.username;
+      const email = state.userEmail;
+      const password = state.password;
+      
+      const jsonPack = {
+        name: name,
+        username: username,
+        email: email,
+        password: password
+      };
 
+      return jsonPack;
     },
     signOut: () => {
       dispatch({ type: 'SIGN_OUT' })
@@ -214,12 +246,21 @@ export default function App() {
                   headerBackTitle: "Home",
                 }} 
               />
+              <Stack.Screen 
+                name="Loading Page"
+                component={LoadingPage}
+                options={{
+                  headershown: true,
+                  headerBackTitle: "Register",
+                }}
+              />
             </Stack.Navigator>
           ) : (
             <Tab.Navigator
               screenOptions={({ route }) => ({
                 tabBarIcon: ({ focused, color, size }) => {
                 let iconName;
+
                 
                 if (route.name === 'Home') {
                     iconName = focused ? 'home' : 'home';
@@ -233,18 +274,27 @@ export default function App() {
       
                 return <Octicons name={iconName} color={color} size={size} />;
                 },
-                tabBarActiveTintColor: 'black',
+                tabBarActiveTintColor: 'white',
                 tabBarInactiveTintColor: 'grey',
+                tabBarStyle: {
+                  backgroundColor: 'black'
+                }
               })}
             >
               <Tab.Screen 
                 name="Home" 
-                component={FeedPage} 
+                component={FeedNav}
                 options={{
                   headerShown: false
                 }}
               />
-              <Tab.Screen name="Search" component={Search} />
+              <Tab.Screen 
+                name="Search" 
+                component={Search}
+                options={{
+                  headerShown: false
+                }}
+              />
               <Tab.Screen 
                 name="Profile" 
                 component={ProfilePage} 
@@ -252,7 +302,13 @@ export default function App() {
                   headerShown: false
                 }}
               />
-              <Tab.Screen name="Settings" component={Settings} />
+              <Tab.Screen 
+                name="Settings" 
+                component={Settings} 
+                options={{ 
+                  headerShown: false 
+                }} 
+              />
             </Tab.Navigator>
           )}
       </AuthContext.Provider>
@@ -269,11 +325,30 @@ const Search = ({ navigation }) => {
 
   return(
     <View>
+      <View
+        style={styles.fixedView}
+      >
+        <Text
+          style={styles.topText}
+        >
+          Search
+        </Text>
+      </View>
       <SearchBar
       placeholder="Search..."
       onChangeText={updateText}
       value={search}
       />
+    </View>
+  )
+}
+
+const NewPost = ({ navigation }) => {
+  return(
+    <View>
+      <Text>
+        This is where new posts are added.
+      </Text>
     </View>
   )
 }
@@ -329,7 +404,8 @@ const EntryPage = ({ navigation }) => {
 const RegistrationPage = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
+  const [usernameInput, setUsernameInput] = useState('');
+  const [nameReal, setNameReal] = useState('');
 
   const { signUp } = React.useContext(AuthContext);
 
@@ -350,9 +426,15 @@ const RegistrationPage = ({ navigation }) => {
           style={styles.inputContainer}
         >
           <TextInput
+              placeholder="Name"
+              value={nameReal}
+              onChangeText={text => setNameReal(text)}
+              style={styles.input}
+          />
+          <TextInput
               placeholder="Username"
-              value={username}
-              onChangeText={text => setUsername(text)}
+              value={usernameInput}
+              onChangeText={text => setUsernameInput(text)}
               style={styles.input}
           />
           <TextInput
@@ -373,7 +455,10 @@ const RegistrationPage = ({ navigation }) => {
             style={styles.buttonContainer}
         >
           <TouchableOpacity
-              onPress={() => signUp( email, password )}
+              onPress={() => {
+                navigation.navigate("Loading Page");
+                signUp(nameReal, usernameInput, email, password);
+              }}
               style={[styles.buttonText, styles.button]}
           >
             <Text
@@ -386,6 +471,72 @@ const RegistrationPage = ({ navigation }) => {
       </KeyboardAvoidingView>
     </LinearGradient>
   )
+}
+
+const LoadingPage = ({ navigation }, state) => {
+  const [loading, setLoading] = useState(true);
+
+  const [loadState, setLoadState] = useState(0);
+  const [data, setData] = useState();
+
+  const { collectJson } = React.useContext(AuthContext);
+  const { googleSignUp } = React.useContext(AuthContext);
+  const jsonBody = collectJson();
+
+  googleSignUp(jsonBody.username, jsonBody.email);
+
+  console.log(jsonBody);
+  console.log("the above object was sent from the registration page to the loading page");
+  console.log("If not null, this text can be deleted and the object is ready to be used in a hook");
+
+  if (loadState == 0) {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = (e) => {
+      if (request.readyState != 4) {
+        return;
+      };
+      if (request.status === 200) {
+        console.log('Registration load success', request.responseText);
+        const responseObj = JSON.parse(request.response);
+        setData(responseObj);
+        setLoadState(2);
+      } else {
+        console.log('some sort of error has occured in the registration hook');
+      };
+    };
+    request.open('POST', 'https://userend.herokuapp.com/add')
+    request.send(jsonBody);
+    setLoadState(1);
+  };
+
+  if ( loadState == 0 || loadState == 1 ) {
+    setLoading(true);
+  } else if ( loadState == 2 ) {
+    setLoading(false);
+  };
+  
+  //Note that when the hook is sent and the response is done loading, you will be automatically taken from the
+  //auth stack to the home stack
+
+  return(
+    <View>
+      {loading ? (
+        <ActivityIndicator
+          visible={loading}
+          textContent={'Loading...'}
+          textStyle={{
+            color: '#FFF'
+          }}
+        />
+      ) : (
+        <>
+          <Text>
+            Thanks For Waiting!
+          </Text>
+        </>
+      ) }
+    </View>
+  );
 }
 
 const LoginPage = ({ navigation }) => {
@@ -452,6 +603,15 @@ const Settings = ({ navigation }) => {
     <View
       style={styles.settingsView}
     >
+      <View
+        style={styles.fixedView}
+      >
+        <Text
+          style={styles.topText}
+        >
+          Settings
+        </Text>
+      </View>
       <Text
         style={styles.settingsTextFirst}
       >
@@ -504,7 +664,7 @@ const styles = StyleSheet.create({
     width: '80%',
     position: 'absolute',
     top: 150
-},
+  },
   input: {
       backgroundColor: 'white',
       paddingHorizontal: 15,
@@ -517,7 +677,7 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center',
       position: 'absolute',
-      top: 250
+      top: 300
   },
   button: {
       backgroundColor: '#0782F9',
@@ -584,6 +744,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 5
+  },
+  fixedView: {
+    position: 'fixed',
+    height: 80,
+    backgroundColor: 'black',
+    width: '100%'
+  },
+  topText: {
+    color: 'white',
+    top: 45,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: 'bold'
   }
 });
 
@@ -635,5 +808,53 @@ const entry = StyleSheet.create({
 
 //Below is a test space and holding space for temporarily unused code:
 /*
+  The below code is the xmlhttprequest to check for existing users and then create a new user upon
+  user registration. It may be breaking the hook rules. We are going to try to use fetch and if 
+  that does not work then we will need to come up with a more clever way to get around the issue
 
+      if (loadstate == 0) {
+          var request = new XMLHttpRequest();
+          request.onreadystatechange = (e) => {
+            if (request.readyState !== 4) {
+              console.log('readyState does not equal 4');
+              return;
+            } if (request.status == 400) {
+              console.log('request was a success in registration form', request.responseText);
+              objRes = JSON.parse(request.response);
+              setData(objRes);
+              setLoadstate(2)
+            } else {
+              console.log('error of truly unknown origin...')
+            }
+          }
+
+          request.open('POST', 'https://userend.herokuapp.com/add');
+          request.setRequestHeader('Content-Type', 'application/json');
+          request.send(JSON.stringify(x));
+          setLoadstate(1);
+
+          console.log('The post call has run and is now waiting to either send or recieve')
+          return;
+        };
+
+        if (loadstate == 2) {
+          console.log('The data has been returned and the user is (existing or new):', data);
+          return;
+        }
+
+
+        The below code is a fetch version of the above code, it is a bit shorter but I am not totally
+        sure if it actually works for what is needed
+
+        async function userSignUpCall(url, data) {
+        const response = await fetch(url, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        return response.json();
+      };
 */

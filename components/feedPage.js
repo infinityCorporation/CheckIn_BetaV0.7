@@ -3,11 +3,16 @@ import * as React from 'react';
 import { useState } from 'react';
 
 //React component imports
-import { Text, FlatList, View, StyleSheet, Platform, Dimensions } from 'react-native';
+import { Text, FlatList, View, StyleSheet, Platform, Dimensions, TouchableOpacity, Touchable } from 'react-native';
+import Item from './item.js';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 //Expo module imports
 import { LinearGradient } from 'expo-linear-gradient';
 import { Octicons } from '@expo/vector-icons';
+import { Button } from 'react-native-elements';
 
 const windowHeight = Dimensions.get('window').height;
 const windowWidth = Dimensions.get('window').width;
@@ -18,22 +23,33 @@ const usernameTop = windowWidth - 25;
 const descriptionTop = windowWidth + 7.5;
 const likesTop = descriptionTop - 30;
 
-export default function FeedPage() {
+ const FeedPage = ({ navigation }) => {
     const [loadState, setLoadState] = useState(0)
     const [data, setData] = useState([])
-    const [liked, setLiked] = useState(false)
+    
+    const [selectedId, setSelectedId] = useState(null);
+
+    const renderItem = ({ item }) => {
+        const color = item._id === selectedId ? ('red') : ('black');
+        const icon = item._id === selectedId ? ('heart-fill') : ('heart');
+        var likes = item.likes;
+
+        if (selectedId === item._id) {
+            likes = likes + 1
+        }
+
+        return(
+            <Item
+                item={item}
+                onPress={() => setSelectedId(item._id)}
+                color={color}
+                icon={icon}
+                likesText={likes}
+            />
+        );
+    };
     
     if ( loadState == 0 ) {
-
-        /*
-        fetch('https://postsbase.herokuapp.com/posts')
-            .then((response) => {
-                console.log(response);
-            })
-            .catch((error) => {
-                console.log(error);
-            })
-        */
 
         var request = new XMLHttpRequest();
         request.onreadystatechange = (e) => {
@@ -95,6 +111,8 @@ export default function FeedPage() {
             </View>
             );
         } else if (Platform.OS === 'ios') {
+
+
         return(
             <View
             style={{
@@ -105,65 +123,63 @@ export default function FeedPage() {
                     colors={['rgba(0,0,0,0.8)', 'transparent']}
                     style={styles.gradient}
                 >
-                
+                    <View
+                        style={{
+                            position: 'fixed',
+                            backgroundColor: 'black',
+                            height: 80,
+                            width: windowWidth
+                        }}
+                    >
+                        <Text
+                            style={{
+                                position: 'fixed',
+                                color: "white",
+                                fontSize: 20,
+                                fontWeight: 'bold',
+                                top: 45,
+                                left: 18
+                            }}
+                        >
+                            CheckIn.
+                        </Text>
+                        <TouchableOpacity
+                            style={{
+                                position: 'fixed',
+                                height: 30,
+                                width: 90,
+                                backgroundColor: 'lightgrey',
+                                top: 12,
+                                left: 280,
+                                borderRadius: 8,
+                                justifyContent: 'center',
+                                alignItems: 'center'
+                            }}
+                            onPress={() => navigation.navigate('AddPost')}
+                        >
+                            <Text
+                                style={{
+                                    fontWeight: 'bold',
+                                    fontSize: 13
+                                }}
+                            >
+                                Add
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                     <FlatList
                     style={{
-                        top: 40
+                        top: 0
                     }}
                     contentContainerStyle={{
-                        paddingBottom: 42,
-                        paddingLeft: 3
+                        paddingBottom: 167,
+                        paddingLeft: 3,
+                        paddingTop: 10
                     }}
                     data={data}
-                    renderItem={ ({item}) => 
-                        <View 
-                        style={{
-                            height: 150,
-                            width: postViewSizeWidth,
-                            borderWidth: 3,
-                            borderColor: 'black',
-                            borderRadius: 14,
-                            margin: 6,
-                            backgroundColor: 'white'
-                        }}>
-                            <Text
-                            style={{
-                                position: 'absolute',
-                                top: 8,
-                                left: 8,
-                                fontSize: 18
-                            }}>
-                                {item.username}
-                            </Text>
-                            <Text
-                            style={{
-                                position: 'absolute',
-                                top: 40,
-                                left: 8,
-                            }}>
-                                {item.content}
-                            </Text>
-                            <Octicons
-                                name='heart'
-                                size={20}
-                                style={{
-                                    position: 'absolute',
-                                    top: 120,
-                                    right: 22
-                                }}
-                            />
-                            <Text
-                            style={{
-                                position: 'absolute',
-                                top: 118,
-                                right: 8,
-                                fontSize: 15
-                            }}
-                            >
-                                {item.likes}
-                            </Text>
-                        </View>
-                    }
+                    renderItem={renderItem}
+                    keyExtractor={(item) => item.id}
+                    extraData={selectedId}
                     />
                 </LinearGradient>
             </View>
@@ -202,3 +218,5 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
 });
+
+export default FeedPage;
