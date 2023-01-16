@@ -148,7 +148,7 @@ const likesTop = descriptionTop - 30;
                                 position: 'fixed',
                                 height: 30,
                                 width: 90,
-                                backgroundColor: 'lightgrey',
+                                backgroundColor: 'white',
                                 top: 12,
                                 left: 280,
                                 borderRadius: 8,

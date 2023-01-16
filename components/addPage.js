@@ -1,7 +1,11 @@
-import * as React from 'react'
-import { View, Text, TouchableOpacity } from 'react-native';
+import * as React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import { useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function AddPage() {
+    const [text, setText] = useState('');
+
     return(
         <View
             style={design.mainView}
@@ -26,21 +30,26 @@ export default function AddPage() {
                     Create a Post
                 </Text>
             </View>
-            <Text>
-                Add Post Content:
-            </Text>
-            <TextInput
-                style={design.inputDesign}
-            />
-            <TouchableOpacity
-                style={design.buttonDesign}
-            >
-                <Text
-                    style={design.buttonText}
+            <LinearGradient
+                    colors={['rgba(0,0,0,0.8)', 'transparent']}
+                    style={design.gradient}
                 >
-                    Post
-                </Text>
-            </TouchableOpacity>
+                <TextInput
+                    multiline
+                    maxLength={125}
+                    onChangeText={text => setText(text)}
+                    style={design.inputDesign}
+                />
+                <TouchableOpacity
+                    style={design.buttonDesign}
+                >
+                    <Text
+                        style={design.buttonText}
+                    >
+                        Post!
+                    </Text>
+                </TouchableOpacity>
+            </LinearGradient>
         </View>
     )
 }
@@ -55,14 +64,38 @@ const design = StyleSheet.create({
         color: 'white'
     },
     buttonDesign: {
-        height: 100,
-        width: 200,
-        position: 'relative'
+        height: '7%',
+        width: '20%',
+        position: 'absolute',
+        borderRadius: 10,
+        borderWidth: 4,
+        borderColor: 'white',
+        justifyContent: 'center',
+        alignItems: 'center',
+        top: 240
     },
     buttonText: {
-
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'white'
     },
     inputDesign: {
-
-    }
+        position: 'absolute',
+        top: 20,
+        width: '80%',
+        height: 200,
+        borderRadius: 10,
+        borderWidth: 4,
+        borderColor: 'white',
+        color: 'white',
+        fontSize: 17,
+        fontWeight: '600',
+        padding: 5
+    },
+    gradient: {
+        width: '100%',
+        backgroundColor: '#7F66D5',
+        alignItems: 'center',
+        height: '100%'
+    },
 })
