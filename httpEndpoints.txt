@@ -15,3 +15,10 @@ start state [get]: https://postsbase.herokuapp.com/
 all posts [get]: https://postsbase.herokuapp.com/posts
 get post [get]: https://postsbase.herokuapp.com/post/:id
 add post [post]: https://postsbase.herokuapp.com/add {JSON}
+
+__________________________________________________________________
+
+Internal Server Codes:
+
+101 - user email exists
+102 - registration error
