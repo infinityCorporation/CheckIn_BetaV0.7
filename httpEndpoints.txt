@@ -20,5 +20,16 @@ __________________________________________________________________
 
 Internal Server Codes:
 
+100 - user created successfully
 101 - user email exists
-102 - registration error
+102 - registration server error
+103 - email appears in database with no account attached
+104 - error with details sent by the client
+
+200 - posts retrieved 
+201 - user is not following other users
+202 - accounts user follows have no posts
+203 - post return error
+
+300 - sign out successful
+301 - sign out error

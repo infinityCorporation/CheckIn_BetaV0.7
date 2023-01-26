@@ -88,6 +88,12 @@ export default function App() {
             password: null
           };
         case 'SEND_JSON':
+          //This will check to see that the information made it to the reducer from the memo function
+          console.log({
+            message: "Storing objects in reducder with values:",
+            name: action.name,
+            username: action.name
+          })
           return {
             ...prevState,
             name: action.name,
@@ -159,7 +165,7 @@ export default function App() {
             SecureStore.setItemAsync('user', JSON.stringify(userCredential.user));
             userLogin = user;
 
-            dispatch({ type: 'SIGN_IN', token: user })
+            dispatch({ type: 'SIGN_IN', token: user})
         })
         .catch((error) => {
             console.log({ message: error.message });
@@ -167,10 +173,7 @@ export default function App() {
         })
 
     },
-    signUp: async (nameReal, usernameInput, email, password) => {
-      dispatch({ type:'SEND_JSON', name: nameReal, username: usernameInput, userEmail: email, password: password});
-    },
-    googleSignUp: async (email, password) => {
+    signUp: async (name, username, email, password) => {
       createUserWithEmailAndPassword(auth, email, password)
         .then(userCredential => {
           const user = userCredential.user;
@@ -183,6 +186,17 @@ export default function App() {
           const errorMessage = error.message;
           console.log(errorCode, ' ', errorMessage);
         });
+
+      //This is checking to see if the memo function is both receiving the correct values and 
+      //sending them to the reducer
+      console.log({
+        message: "Sending objects to reducer with values:",
+        name: name,
+        username: username,
+        email: email
+      });
+      dispatch({ type:'SEND_JSON', name: name, username: username, email: email, password: password});
+      
     },
     collectJSON: async () => {
       const name = state.name;
@@ -190,6 +204,14 @@ export default function App() {
       const email = state.userEmail;
       const password = state.password;
       
+      //This is checking that the second memo function has retrieved the values from state and is sending them to
+      //the function call in the loading page.
+      console.log({
+        message: "CollectJSON has run and is sending values:",
+        name: name,
+        username: username,
+        email: email
+      });
       const jsonPack = {
         name: name,
         username: username,
@@ -404,8 +426,8 @@ const EntryPage = ({ navigation }) => {
 const RegistrationPage = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [usernameInput, setUsernameInput] = useState('');
-  const [nameReal, setNameReal] = useState('');
+  const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
 
   const { signUp } = React.useContext(AuthContext);
 
@@ -428,13 +450,13 @@ const RegistrationPage = ({ navigation }) => {
           <TextInput
               placeholder="Name"
               value={nameReal}
-              onChangeText={text => setNameReal(text)}
+              onChangeText={text => setName(text)}
               style={styles.input}
           />
           <TextInput
               placeholder="Username"
               value={usernameInput}
-              onChangeText={text => setUsernameInput(text)}
+              onChangeText={text => setUsername(text)}
               style={styles.input}
           />
           <TextInput
@@ -456,8 +478,15 @@ const RegistrationPage = ({ navigation }) => {
         >
           <TouchableOpacity
               onPress={() => {
+                signUp(name, username, email, password);
+                console.log({
+                  message: "The user object should have been sent with values:",
+                  name: name,
+                  username: username,
+                  email: email,
+                  password: password
+                })
                 navigation.navigate("Loading Page");
-                signUp(nameReal, usernameInput, email, password);
               }}
               style={[styles.buttonText, styles.button]}
           >
@@ -475,63 +504,65 @@ const RegistrationPage = ({ navigation }) => {
 
 const LoadingPage = ({ navigation }, state) => {
   const [loading, setLoading] = useState(true);
-
   const [loadState, setLoadState] = useState(0);
   const [data, setData] = useState();
 
-  const { collectJson } = React.useContext(AuthContext);
-  const { googleSignUp } = React.useContext(AuthContext);
-  const jsonBody = collectJson();
+  const { collectJSON } = React.useContext(AuthContext);
+  const jsonPack = collectJSON();
 
-  googleSignUp(jsonBody.username, jsonBody.email);
+  //Google signup was moved into the signup memo
 
-  console.log(jsonBody);
+  console.log(jsonPack);
   console.log("the above object was sent from the registration page to the loading page");
   console.log("If not null, this text can be deleted and the object is ready to be used in a hook");
 
-  if (loadState == 0) {
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = (e) => {
-      if (request.readyState != 4) {
-        return;
-      };
-      if (request.status === 200) {
-        console.log('Registration load success', request.responseText);
-        const responseObj = JSON.parse(request.response);
-        setData(responseObj);
-        setLoadState(2);
-      } else {
-        console.log('some sort of error has occured in the registration hook');
-      };
-    };
-    request.open('POST', 'https://userend.herokuapp.com/add')
-    request.send(jsonBody);
-    setLoadState(1);
-  };
-
-  if ( loadState == 0 || loadState == 1 ) {
-    setLoading(true);
-  } else if ( loadState == 2 ) {
-    setLoading(false);
-  };
+  //Here is where the work begins on the hook code
   
   //Note that when the hook is sent and the response is done loading, you will be automatically taken from the
   //auth stack to the home stack
+  if (loadState == 0) {
+
+    var request = new XMLHttpRequest();
+
+    request.onreadystatechange = (e) => {
+      if (request.status == 400) {
+        console.log('The hook call was a success. The response object is:', request.responseText);
+        objRes = JSON.parse(request.response);
+        setData(objRes);
+        setLoading(false);
+        setLoadState(2);
+      } else {
+        console.log('error of truly unknown origin...');
+      }
+    };
+
+  request.open('POST', 'https://userend.herokuapp.com/add');
+  request.setRequestHeader('Content-Type', 'application/json');
+  request.send(JSON.stringify(jsonPack));
+  setLoadState(1);
+
+  };
 
   return(
     <View>
       {loading ? (
-        <ActivityIndicator
-          visible={loading}
-          textContent={'Loading...'}
-          textStyle={{
-            color: '#FFF'
-          }}
-        />
+        <>
+          <Text
+            style={{
+              fontSize: 20
+            }}
+          >
+            - THIS IS A LOADING PAGE -
+          </Text>
+        </>
       ) : (
         <>
-          <Text>
-            Thanks For Waiting!
+          <Text
+            style={{
+              fontSize: 20
+            }}
+          >
+            - THE PROGRAM HAS FINISHED LOADING -
           </Text>
         </>
       ) }
@@ -807,6 +838,7 @@ const entry = StyleSheet.create({
 })
 
 //Below is a test space and holding space for temporarily unused code:
+
 /*
   The below code is the xmlhttprequest to check for existing users and then create a new user upon
   user registration. It may be breaking the hook rules. We are going to try to use fetch and if 
@@ -857,4 +889,6 @@ const entry = StyleSheet.create({
         });
         return response.json();
       };
-*/
+      */ 
+     
+let final;
